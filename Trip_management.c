@@ -20,7 +20,7 @@ int validate_date(const char *date) {
     //if (is_leap_year(y)) days_in_month[2] = 29;
     if (d < 1 || d > days_in_month[m]) return 0;
 
-    return 1; // valid
+    return 1; 
 }
 
 // เช็ก ID ซ้ำ
@@ -283,3 +283,4 @@ int main() {
     if (open_file() == -1) return -1;
     return display_menu();
 }
+
