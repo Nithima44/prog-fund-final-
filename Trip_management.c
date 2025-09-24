@@ -5,34 +5,42 @@
 #define MAX_LINE 256
 #define MAX_TRIPS 100
 
-// เช็กปี เพิ่มเติม
-/*int is_leap_year(int year) {
-    return ((year % 4 == 0 
-}*/
 
-// เช็กฟอแมทวันที่
+int is_leap_year(int year) {
+    return ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0));
+}
+
+
 int validate_date(const char *date) {
     int y, m, d;
     if (sscanf(date, "%d-%d-%d", &y, &m, &d) != 3) return 0;
     if (m < 1 || m > 12) return 0;
 
     int days_in_month[] = {0,31,28,31,30,31,30,31,31,30,31,30,31};
-    //if (is_leap_year(y)) days_in_month[2] = 29;
+    if (is_leap_year(y)) days_in_month[2] = 29;
     if (d < 1 || d > days_in_month[m]) return 0;
 
     return 1; 
 }
 
-// เช็ก ID ซ้ำ
-/*int is_trip_exist(const char *id) {
+
+int is_trip_exist(const char *id) {
     FILE *fp = fopen(FILE_NAME, "r");
     if (fp == NULL) return 0;
 
-    
+    char line[MAX_LINE];
+    fgets(line, sizeof(line), fp); 
+    while (fgets(line, sizeof(line), fp)) {
+        char tripID[20];
+        sscanf(line, "%[^,],", tripID);
+        if (strcmp(tripID, id) == 0) {
+            fclose(fp);
+            return 1;
+        }
     }
     fclose(fp);
     return 0;
-}*/
+}
 
 
 int open_file() {
@@ -81,11 +89,11 @@ int add_trip() {
     printf("กรอก TripID (เช่น T016): ");
     scanf("%s", id);
 
-    /*if (is_trip_exist(id)) {
+    if (is_trip_exist(id)) {
         printf("TripID %s มีอยู่แล้ว \n", id);
         fclose(fp);
         return 1;  
-    }*/
+    }
 
     printf("กรอกจุดเริ่มต้น: ");
     scanf("%s", start);
@@ -140,9 +148,9 @@ int search_trip() {
 }
 
 
-/*int update_trip() {
+int update_trip() {
     char id[20];
-    printf("กรอก TripID ที่ต้องการแก้ไข: ");
+    printf("กรอก TripID ที่ต้องการแก้ไข (เช่น T001): ");
     scanf("%s", id);
 
     FILE *fp = fopen(FILE_NAME, "r");
@@ -151,14 +159,13 @@ int search_trip() {
         return -1;
     }
 
-    char lines[100][200];   
+    char lines[1000][200];   
     int line_count = 0;
     int found = 0;
 
     while (fgets(lines[line_count], sizeof(lines[line_count]), fp)) {
         char tid[20], start[50], dest[50], date[20];
-        if (sscanf(lines[line_count], ************
-                   tid, start, dest, date) == 4) {
+        if (sscanf(lines[line_count], "%19[^,],%49[^,],%49[^,],%19[^\n]", tid, start, dest, date) == 4) {
             if (strcmp(tid, id) == 0) {
                 found = 1;
                 char new_start[50], new_dest[50], new_date[20];
@@ -168,14 +175,17 @@ int search_trip() {
 
                 printf("กรอกจุดหมายปลายทางใหม่ (เดิม: %s): ", dest);
                 scanf("%s", new_dest);
-                ***************
 
                 do {
                     printf("กรอกวันที่เดินทางใหม่ (เดิม: %s, YYYY-MM-DD): ", date);
                     scanf("%s", new_date);
                     if (!validate_date(new_date)) {
                         printf("วันที่ไม่ถูกต้องตามรูปแบบ กรุณาลองใหม่\n");
-                *************
+                    }
+                } while (!validate_date(new_date));
+
+                snprintf(lines[line_count], sizeof(lines[line_count]),
+                         "%s,%s,%s,%s\n", tid, new_start, new_dest, new_date);
             }
         }
         line_count++;
@@ -199,7 +209,7 @@ int search_trip() {
 
     printf("แก้ไขข้อมูลเรียบร้อย\n");
     return 0;
-}*/
+}
 
 
 int delete_trip() {
@@ -217,7 +227,7 @@ int delete_trip() {
     fclose(fp);
 
     char target[20];
-    printf("กรอก TripID ที่ต้องการลบ: ");
+    printf("กรอก TripID ที่ต้องการลบ (เช่น T001): ");
     scanf("%s", target);
 
     int found = 0;
@@ -255,7 +265,7 @@ int display_menu() {
         printf("1. แสดงข้อมูลทั้งหมด\n");
         printf("2. เพิ่มข้อมูล\n");
         printf("3. ค้นหาข้อมูล (TripID/Destination)\n");
-        printf("4. แก้ไขข้อมูล\n");
+        printf("4. อัปเดตข้อมูล\n");
         printf("5. ลบข้อมูล\n");
         printf("6. ออกจากโปรแกรม\n");
         printf("เลือกเมนู (1-6): ");
@@ -266,7 +276,7 @@ int display_menu() {
             case 1: result = read_file(); break;
             case 2: result = add_trip(); break;
             case 3: result = search_trip(); break;
-            //case 4: result = update_trip(); break;
+            case 4: result = update_trip(); break;
             case 5: result = delete_trip(); break;
             case 6: printf("ออกจากโปรแกรมแล้ว\n"); return 0;
             default: printf("เลือกเมนูไม่ถูกต้อง\n"); result = 1;
